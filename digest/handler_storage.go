@@ -138,8 +138,7 @@ func (hd *Handlers) buildStorageDataHal(
 			Height    int64      `json:"height"`
 			Operation string     `json:"operation"`
 			Timestamp string     `json:"timestamp"`
-			Deleted   bool       `json:"deleted"`
-		}{Data: data, Height: height, Operation: operation, Timestamp: timestamp, Deleted: deleted},
+		}{Data: data, Height: height, Operation: operation, Timestamp: timestamp},
 		currencydigest.NewHalLink(h, nil),
 	)
 
@@ -293,7 +292,6 @@ func (hd *Handlers) buildStorageDataHistoryHal(
 			Height    int64      `json:"height"`
 			Operation string     `json:"operation"`
 			Timestamp string     `json:"timestamp"`
-			Deleted   bool       `json:"deleted"`
 		})
 		if !ok {
 			return nil, errors.Errorf("failed to build storage data history hal")
