@@ -5,7 +5,7 @@ import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"github.com/ProtoconNet/mitum-currency/v3/state"
 	crtypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	statetstr "github.com/ProtoconNet/mitum-storage/state"
+	statestr "github.com/ProtoconNet/mitum-storage/state"
 	"github.com/ProtoconNet/mitum-storage/types"
 	"github.com/pkg/errors"
 	"sync"
@@ -116,7 +116,7 @@ func (opp *DeleteDataProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := state.CheckExistsState(statetstr.DesignStateKey(fact.Contract()), getStateFunc); err != nil {
+	if err := state.CheckExistsState(statestr.DesignStateKey(fact.Contract()), getStateFunc); err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMServiceNF).Errorf("storage service for contract account %v",
@@ -124,7 +124,29 @@ func (opp *DeleteDataProcessor) PreProcess(
 			)), nil
 	}
 
-	if err := state.CheckExistsState(statetstr.DataStateKey(fact.Contract(), fact.DataKey()), getStateFunc); err != nil {
+	if st, err := state.ExistsState(statestr.DataStateKey(fact.Contract(), fact.DataKey()), "storage data", getStateFunc); err != nil {
+		return nil, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMStateNF).Errorf("storage data for key %v in contract account %v", fact.DataKey(),
+				fact.Contract(),
+			)), nil
+	} else if d, err := statestr.GetDataFromState(st); err != nil {
+		return nil, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMStateValInvalid).Errorf(
+				"storage data for key %v in contract account %v", fact.DataKey(),
+				fact.Contract(),
+			)), nil
+	} else if d.IsDeleted() {
+		return nil, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMValueInvalid).Errorf(
+				"storage data for key %v in contract account %v has already been deleted", fact.DataKey(),
+				fact.Contract(),
+			)), nil
+	}
+
+	if err := state.CheckExistsState(statestr.DataStateKey(fact.Contract(), fact.DataKey()), getStateFunc); err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMStateNF).Errorf("storage data for contract account %v",
@@ -158,8 +180,8 @@ func (opp *DeleteDataProcessor) Process( // nolint:dupl
 
 	var sts []mitumbase.StateMergeValue // nolint:prealloc
 	sts = append(sts, state.NewStateMergeValue(
-		statetstr.DataStateKey(fact.Contract(), fact.DataKey()),
-		statetstr.NewDataStateValue(stData),
+		statestr.DataStateKey(fact.Contract(), fact.DataKey()),
+		statestr.NewDataStateValue(stData),
 	))
 
 	currencyPolicy, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
