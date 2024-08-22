@@ -66,7 +66,6 @@ func StorageDesign(st *cdigest.Database, contract string) (types.Design, base.St
 func StorageData(db *cdigest.Database, contract, key string) (*types.Data, int64, string, string, bool, error) {
 	filter := utilc.NewBSONFilter("contract", contract)
 	filter = filter.Add("data_key", key)
-	filter = filter.Add("deleted", false)
 	q := filter.D()
 
 	opt := options.FindOne().SetSort(
