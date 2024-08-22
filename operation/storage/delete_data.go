@@ -47,6 +47,10 @@ func (fact DeleteDataFact) IsValid(b []byte) error {
 				errors.Errorf("invalid data key length %v < 1 or %v > %v", len(fact.dataKey), len(fact.dataKey), types.MaxKeyLen)))
 	}
 
+	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.dataKey)) {
+		return common.ErrFactInvalid.Wrap(common.ErrValueInvalid.Wrap(errors.Errorf("date key %s, must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.dataKey)))
+	}
+
 	if fact.sender.Equal(fact.contract) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrSelfTarget.Wrap(errors.Errorf("sender %v is same with contract account", fact.sender)))
