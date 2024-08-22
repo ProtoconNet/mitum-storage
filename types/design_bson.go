@@ -11,14 +11,14 @@ import (
 func (de Design) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":       de.Hint().String(),
-			"projects_id": de.project,
+			"_hint":   de.Hint().String(),
+			"project": de.project,
 		})
 }
 
 type DesignBSONUnmarshaler struct {
 	Hint    string `bson:"_hint"`
-	Project string `bson:"projects_id"`
+	Project string `bson:"project"`
 }
 
 func (de *Design) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
