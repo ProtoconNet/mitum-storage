@@ -93,7 +93,7 @@ func (doc StorageDataDoc) MarshalBSON() ([]byte, error) {
 	m["data_key"] = doc.data.DataKey()
 	m["height"] = doc.st.Height()
 	m["operation"] = doc.st.Operations()[0].String()
-	m["timestamp"] = doc.timestamp.String()
+	m["timestamp"] = doc.timestamp.Format(time.RFC3339Nano)
 	m["deleted"] = doc.data.IsDeleted()
 
 	return bsonutil.Marshal(m)
