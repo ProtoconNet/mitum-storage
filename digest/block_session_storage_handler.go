@@ -40,11 +40,11 @@ func (bs *BlockSession) prepareStorage() error {
 }
 
 func (bs *BlockSession) handleStorageDesignState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if serviceDesignDoc, err := NewDesignDoc(st, bs.st.Encoder()); err != nil {
+	if storageDesignDoc, err := NewStorageDesignDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{
-			mongo.NewInsertOneModel().SetDocument(serviceDesignDoc),
+			mongo.NewInsertOneModel().SetDocument(storageDesignDoc),
 		}, nil
 	}
 }

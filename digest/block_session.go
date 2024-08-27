@@ -384,6 +384,7 @@ func (bs *BlockSession) close() error {
 	bs.accountModels = nil
 	bs.balanceModels = nil
 	bs.storageModels = nil
+	bs.storageDataModels = nil
 	bs.contractAccountModels = nil
 
 	return bs.st.Close()

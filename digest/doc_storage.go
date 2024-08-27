@@ -12,33 +12,33 @@ import (
 	"time"
 )
 
-type DesignDoc struct {
+type StorageDesignDoc struct {
 	mongodb.BaseDoc
 	st     base.State
 	design types.Design
 }
 
-// NewDesignDoc get the State of Storage Design
-func NewDesignDoc(st base.State, enc encoder.Encoder) (DesignDoc, error) {
+// NewStorageDesignDoc get the State of Storage Design
+func NewStorageDesignDoc(st base.State, enc encoder.Encoder) (StorageDesignDoc, error) {
 	design, err := state.GetDesignFromState(st)
 
 	if err != nil {
-		return DesignDoc{}, err
+		return StorageDesignDoc{}, err
 	}
 
 	b, err := mongodb.NewBaseDoc(nil, st, enc)
 	if err != nil {
-		return DesignDoc{}, err
+		return StorageDesignDoc{}, err
 	}
 
-	return DesignDoc{
+	return StorageDesignDoc{
 		BaseDoc: b,
 		st:      st,
 		design:  design,
 	}, nil
 }
 
-func (doc DesignDoc) MarshalBSON() ([]byte, error) {
+func (doc StorageDesignDoc) MarshalBSON() ([]byte, error) {
 	m, err := doc.BaseDoc.M()
 	if err != nil {
 		return nil, err
