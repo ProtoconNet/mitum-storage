@@ -139,12 +139,7 @@ func (opp *CreateDataProcessor) Process( // nolint:dupl
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process CreateData")
-
-	fact, ok := op.Fact().(CreateDataFact)
-	if !ok {
-		return nil, nil, e.Errorf("expected CreateDataFact, not %T", op.Fact())
-	}
+	fact, _ := op.Fact().(CreateDataFact)
 
 	stData := types.NewData(
 		fact.DataKey(),
