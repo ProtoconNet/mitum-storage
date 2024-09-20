@@ -127,8 +127,9 @@ func (opp *UpdateDataProcessor) PreProcess(
 	if err := state.CheckExistsState(statetstr.DataStateKey(fact.Contract(), fact.DataKey()), getStateFunc); err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMStateNF).Errorf("storage data for contract account %v",
-				fact.Contract(),
+				Wrap(common.ErrMStateNF).Errorf(
+				"storage data for key %v in contract account %v has already been deleted",
+				fact.DataKey(), fact.Contract(),
 			)), nil
 	}
 

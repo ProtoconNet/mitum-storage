@@ -141,16 +141,17 @@ func (opp *DeleteDataProcessor) PreProcess(
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMValueInvalid).Errorf(
-				"storage data for key %v in contract account %v has already been deleted", fact.DataKey(),
-				fact.Contract(),
+				"storage data for key %v in contract account %v has already been deleted",
+				fact.DataKey(), fact.Contract(),
 			)), nil
 	}
 
 	if err := state.CheckExistsState(statestr.DataStateKey(fact.Contract(), fact.DataKey()), getStateFunc); err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMStateNF).Errorf("storage data for contract account %v",
-				fact.Contract(),
+				Wrap(common.ErrMStateNF).Errorf(
+				"storage data for key %v in contract account %v has already been deleted",
+				fact.DataKey(), fact.Contract(),
 			)), nil
 	}
 
