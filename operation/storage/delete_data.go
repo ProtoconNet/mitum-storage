@@ -110,6 +110,12 @@ func (fact DeleteDataFact) Currency() currencytypes.CurrencyID {
 	return fact.currency
 }
 
+func (fact DeleteDataFact) Addresses() ([]mitumbase.Address, error) {
+	as := []mitumbase.Address{fact.sender}
+
+	return as, nil
+}
+
 type DeleteData struct {
 	common.BaseOperation
 }

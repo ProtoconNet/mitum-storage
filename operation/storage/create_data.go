@@ -123,6 +123,12 @@ func (fact CreateDataFact) Currency() currencytypes.CurrencyID {
 	return fact.currency
 }
 
+func (fact CreateDataFact) Addresses() ([]mitumbase.Address, error) {
+	as := []mitumbase.Address{fact.sender}
+
+	return as, nil
+}
+
 type CreateData struct {
 	common.BaseOperation
 }
