@@ -104,6 +104,7 @@ type StorageDataDocBSONUnMarshaler struct {
 	E  string        `bson:"_e"`
 	D  bson.RawValue `bson:"d"`
 	H  bool          `bson:"_hinted"`
+	K  string        `bson:"data_key"`
 	HT int64         `bson:"height"`
 	O  string        `bson:"operation"`
 	T  string        `bson:"timestamp"`

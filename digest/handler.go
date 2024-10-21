@@ -23,9 +23,10 @@ import (
 )
 
 var (
-	HandlerPathStorageDesign  = `/storage/{contract:(?i)` + types.REStringAddressString + `}`
-	HandlerPathStorageData    = `/storage/{contract:(?i)` + types.REStringAddressString + `}/datakey/{data_key:` + types.ReSpecialCh + `}`
-	HandlerPathStorageHistory = `/storage/{contract:(?i)` + types.REStringAddressString + `}/datakey/{data_key:` + types.ReSpecialCh + `}/history`
+	HandlerPathStorageDesign      = `/storage/{contract:(?i)` + types.REStringAddressString + `}`
+	HandlerPathStorageData        = `/storage/{contract:(?i)` + types.REStringAddressString + `}/datakey/{data_key:` + types.ReSpecialCh + `}`
+	HandlerPathStorageDataHistory = `/storage/{contract:(?i)` + types.REStringAddressString + `}/datakey/{data_key:` + types.ReSpecialCh + `}/history`
+	HandlerPathStorageDataCount   = `/storage/{contract:(?i)` + types.REStringAddressString + `}/datacount`
 )
 
 func init() {
@@ -125,7 +126,9 @@ func (hd *Handlers) setHandlers() {
 		Methods(http.MethodOptions, "GET")
 	_ = hd.setHandler(HandlerPathStorageDesign, hd.handleStorageDesign, true, get, get).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathStorageHistory, hd.handleStorageDataHistory, true, get, get).
+	_ = hd.setHandler(HandlerPathStorageDataHistory, hd.handleStorageDataHistory, true, get, get).
+		Methods(http.MethodOptions, "GET")
+	_ = hd.setHandler(HandlerPathStorageDataCount, hd.handleStorageDataCount, true, get, get).
 		Methods(http.MethodOptions, "GET")
 }
 

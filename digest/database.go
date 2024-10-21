@@ -145,6 +145,63 @@ func SotrageDataHistoryByDataKey(
 	)
 }
 
+func DataCountByContract(
+	st *cdigest.Database,
+	contract string,
+	deleted bool,
+) (int64, error) {
+	filterA := bson.A{}
+
+	// filter fot matching collection
+	filterContract := bson.D{{"contract", bson.D{{"$in", []string{contract}}}}}
+	filterA = append(filterA, filterContract)
+
+	filter := bson.D{}
+	if len(filterA) > 0 {
+		filter = bson.D{
+			{"$and", filterA},
+		}
+	}
+
+	var docs []StorageDataDocBSONUnMarshaler
+	var ctx = context.Background()
+
+	var cursor *mongo.Cursor
+	c, err := st.MongoClient().Collection(defaultColNameStorageData).Find(ctx, filter, nil)
+	if err != nil {
+		return 0, err
+	} else {
+		defer func() {
+			_ = c.Close(ctx)
+		}()
+
+		cursor = c
+	}
+	if err = cursor.All(ctx, &docs); err != nil {
+		return 0, err
+	}
+
+	dataMap := make(map[string]StorageDataDocBSONUnMarshaler)
+
+	for _, doc := range docs {
+		if d, found := dataMap[doc.K]; found {
+			if doc.HT > d.HT {
+				if deleted || !doc.DL {
+					dataMap[doc.K] = doc
+				} else {
+					delete(dataMap, doc.K)
+				}
+			}
+		} else if !deleted && !doc.DL {
+			dataMap[doc.K] = doc
+		} else if deleted {
+			dataMap[doc.K] = doc
+		}
+	}
+
+	return int64(len(dataMap)), nil
+}
+
 func buildStorageDataHistoryFilterByDataKey(contract, key string, offset string, reverse bool) (bson.D, error) {
 	filterA := bson.A{}
 
