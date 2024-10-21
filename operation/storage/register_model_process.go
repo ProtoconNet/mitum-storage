@@ -34,12 +34,12 @@ func NewRegisterModelProcessor() currencytypes.GetNewProcessor {
 		newPreProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 	) (mitumbase.OperationProcessor, error) {
-		e := util.StringError("failed to create new CreateServiceProcessor")
+		e := util.StringError("failed to create new RegisterModelProcessor")
 
 		nopp := registerModelProcessorPool.Get()
 		opp, ok := nopp.(*RegisterModelProcessor)
 		if !ok {
-			return nil, errors.Errorf("expected servicesRegisterProcessor, not %T", nopp)
+			return nil, errors.Errorf("expected RegisterModelProcessor, not %T", nopp)
 		}
 
 		b, err := mitumbase.NewBaseOperationProcessor(

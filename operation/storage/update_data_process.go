@@ -128,7 +128,7 @@ func (opp *UpdateDataProcessor) PreProcess(
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMStateNF).Errorf(
-				"storage data for key %v in contract account %v has already been deleted",
+				"storage data for key %v in contract account %v",
 				fact.DataKey(), fact.Contract(),
 			)), nil
 	}
