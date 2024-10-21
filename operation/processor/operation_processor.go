@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"github.com/ProtoconNet/mitum-currency/v3/operation/currency"
 	"github.com/ProtoconNet/mitum-currency/v3/operation/extension"
 	currencyprocessor "github.com/ProtoconNet/mitum-currency/v3/operation/processor"
@@ -11,9 +12,10 @@ import (
 )
 
 const (
-	DuplicationTypeSender   currencytypes.DuplicationType = "sender"
-	DuplicationTypeCurrency currencytypes.DuplicationType = "currency"
-	DuplicationTypeContract currencytypes.DuplicationType = "contract"
+	DuplicationTypeSender      currencytypes.DuplicationType = "sender"
+	DuplicationTypeCurrency    currencytypes.DuplicationType = "currency"
+	DuplicationTypeContract    currencytypes.DuplicationType = "contract"
+	DuplicationTypeStorageData currencytypes.DuplicationType = "storagedata"
 )
 
 func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Operation) error {
@@ -22,7 +24,7 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 
 	var duplicationTypeSenderID string
 	var duplicationTypeCurrencyID string
-	var duplicationTypeCredentialID []string
+	var duplicationTypeStorageData []string
 	var duplicationTypeContractID string
 	var newAddresses []mitumbase.Address
 
@@ -30,7 +32,7 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 	case currency.CreateAccount:
 		fact, ok := t.Fact().(currency.CreateAccountFact)
 		if !ok {
-			return errors.Errorf("expected CreateAccountFact, not %T", t.Fact())
+			return errors.Errorf("expected Cr has already been deletedeateAccountFact, not %T", t.Fact())
 		}
 		as, err := fact.Targets()
 		if err != nil {
@@ -84,16 +86,46 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 	case storage.RegisterModel:
 		fact, ok := t.Fact().(storage.RegisterModelFact)
 		if !ok {
-			return errors.Errorf("expected CreateServiceFact, not %T", t.Fact())
+			return errors.Errorf("expected RegisterModelFact, not %T", t.Fact())
 		}
 		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
 		duplicationTypeContractID = currencyprocessor.DuplicationKey(fact.Contract().String(), DuplicationTypeContract)
 	case storage.CreateData:
 		fact, ok := t.Fact().(storage.CreateDataFact)
 		if !ok {
-			return errors.Errorf("expected AppendFact, not %T", t.Fact())
+			return errors.Errorf("expected CreateDataFact, not %T", t.Fact())
 		}
 		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
+		duplicationTypeStorageData = []string{currencyprocessor.DuplicationKey(
+			fmt.Sprintf("%s:%s", fact.Contract().String(), fact.DataKey()), DuplicationTypeStorageData)}
+	case storage.UpdateData:
+		fact, ok := t.Fact().(storage.UpdateDataFact)
+		if !ok {
+			return errors.Errorf("expected UpdateDataFact, not %T", t.Fact())
+		}
+		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
+		duplicationTypeStorageData = []string{currencyprocessor.DuplicationKey(
+			fmt.Sprintf("%s:%s", fact.Contract().String(), fact.DataKey()), DuplicationTypeStorageData)}
+	case storage.DeleteData:
+		fact, ok := t.Fact().(storage.DeleteDataFact)
+		if !ok {
+			return errors.Errorf("expected DeleteDataFact, not %T", t.Fact())
+		}
+		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
+		duplicationTypeStorageData = []string{currencyprocessor.DuplicationKey(
+			fmt.Sprintf("%s:%s", fact.Contract().String(), fact.DataKey()), DuplicationTypeStorageData)}
+	case storage.CreateDatas:
+		fact, ok := t.Fact().(storage.CreateDatasFact)
+		if !ok {
+			return errors.Errorf("expected CreateDatasFact, not %T", t.Fact())
+		}
+		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
+		var datas []string
+		for _, v := range fact.Items() {
+			key := currencyprocessor.DuplicationKey(fmt.Sprintf("%s:%s", v.Contract().String(), v.DataKey()), DuplicationTypeStorageData)
+			datas = append(datas, key)
+		}
+		duplicationTypeStorageData = datas
 	default:
 		return nil
 	}
@@ -126,11 +158,11 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 
 		opr.Duplicated[duplicationTypeContractID] = struct{}{}
 	}
-	if len(duplicationTypeCredentialID) > 0 {
-		for _, v := range duplicationTypeCredentialID {
+	if len(duplicationTypeStorageData) > 0 {
+		for _, v := range duplicationTypeStorageData {
 			if _, found := opr.Duplicated[v]; found {
 				return errors.Errorf(
-					"cannot use a duplicated contract-template-credential for credential model , %v within a proposal",
+					"cannot use a duplicated contract-datakey for storage data, %v within a proposal",
 					v,
 				)
 			}

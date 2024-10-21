@@ -62,9 +62,23 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		storage.NewDeleteDataProcessor(),
 	); err != nil {
 		return pctx, err
+	} else if err := opr.SetProcessor(
+		storage.CreateDatasHint,
+		storage.NewCreateDatasProcessor(),
+	); err != nil {
+		return pctx, err
 	}
 
 	_ = set.Add(storage.CreateDataHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+		return opr.New(
+			height,
+			getStatef,
+			nil,
+			nil,
+		)
+	})
+
+	_ = set.Add(storage.CreateDatasHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
 			getStatef,
