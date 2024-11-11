@@ -12,6 +12,7 @@ import (
 )
 
 func (hd *Handlers) handleStorageDesign(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	cacheKey := currencydigest.CacheKeyPath(r)
 	if err := currencydigest.LoadFromCache(hd.cache, cacheKey, w); err == nil {
 		return
@@ -79,6 +80,7 @@ func (hd *Handlers) buildStorageDesign(contract string, de types.Design, st base
 }
 
 func (hd *Handlers) handleStorageData(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	cacheKey := currencydigest.CacheKeyPath(r)
 	if err := currencydigest.LoadFromCache(hd.cache, cacheKey, w); err == nil {
 		return
@@ -158,6 +160,7 @@ func (hd *Handlers) buildStorageDataHal(
 }
 
 func (hd *Handlers) handleStorageDataHistory(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	limit := currencydigest.ParseLimitQuery(r.URL.Query().Get("limit"))
 	offset := currencydigest.ParseStringQuery(r.URL.Query().Get("offset"))
 	reverse := currencydigest.ParseBoolQuery(r.URL.Query().Get("reverse"))
@@ -186,7 +189,7 @@ func (hd *Handlers) handleStorageDataHistory(w http.ResponseWriter, r *http.Requ
 	})
 
 	if err != nil {
-		hd.Log().Err(err).Str("Issuer", contract).Msg("failed to get credentials")
+		hd.Log().Err(err).Str("contract", contract).Msg("failed to get data history")
 		currencydigest.HTTP2HandleError(w, err)
 
 		return
@@ -316,6 +319,7 @@ func (hd *Handlers) buildStorageDataHistoryHal(
 }
 
 func (hd *Handlers) handleStorageDataCount(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	cachekey := currencydigest.CacheKey(
 		r.URL.Path,
 	)
@@ -336,7 +340,7 @@ func (hd *Handlers) handleStorageDataCount(w http.ResponseWriter, r *http.Reques
 	})
 
 	if err != nil {
-		hd.Log().Err(err).Str("contract", contract).Msg("failed to count nft")
+		hd.Log().Err(err).Str("contract", contract).Msg("failed to count data")
 		currencydigest.HTTP2HandleError(w, err)
 
 		return

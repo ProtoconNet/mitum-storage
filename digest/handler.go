@@ -4,7 +4,6 @@ import (
 	"context"
 	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
 	"github.com/ProtoconNet/mitum-currency/v3/types"
-	isaacnetwork "github.com/ProtoconNet/mitum2/isaac/network"
 	"github.com/ProtoconNet/mitum2/network/quicmemberlist"
 	"github.com/ProtoconNet/mitum2/network/quicstream"
 	"net/http"
@@ -46,7 +45,7 @@ type Handlers struct {
 	cache           currencydigest.Cache
 	nodeInfoHandler currencydigest.NodeInfoHandler
 	send            func(interface{}) (base.Operation, error)
-	client          func() (*isaacnetwork.BaseClient, *quicmemberlist.Memberlist, []quicstream.ConnInfo, error)
+	client          func() (*quicstream.ConnectionPool, *quicmemberlist.Memberlist, []quicstream.ConnInfo, error)
 	router          *mux.Router
 	routes          map[string]*mux.Route
 	itemsLimiter    func(string) int64

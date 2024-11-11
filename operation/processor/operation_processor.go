@@ -126,6 +126,18 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 			datas = append(datas, key)
 		}
 		duplicationTypeStorageData = datas
+	case storage.UpdateDatas:
+		fact, ok := t.Fact().(storage.UpdateDatasFact)
+		if !ok {
+			return errors.Errorf("expected UpdateDatasFact, not %T", t.Fact())
+		}
+		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
+		var datas []string
+		for _, v := range fact.Items() {
+			key := currencyprocessor.DuplicationKey(fmt.Sprintf("%s:%s", v.Contract().String(), v.DataKey()), DuplicationTypeStorageData)
+			datas = append(datas, key)
+		}
+		duplicationTypeStorageData = datas
 	default:
 		return nil
 	}
@@ -197,6 +209,10 @@ func GetNewProcessor(opr *currencyprocessor.OperationProcessor, op mitumbase.Ope
 		currency.UpdateCurrency,
 		currency.Mint,
 		storage.RegisterModel,
+		storage.UpdateData,
+		storage.UpdateDatas,
+		storage.CreateDatas,
+		storage.DeleteData,
 		storage.CreateData:
 		return nil, false, errors.Errorf("%T needs SetProcessor", t)
 	default:

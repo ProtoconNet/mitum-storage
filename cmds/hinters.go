@@ -22,9 +22,11 @@ var AddedHinters = []encoder.DecodeDetail{
 	{Hint: storage.CreateDataHint, Instance: storage.CreateData{}},
 	{Hint: storage.CreateDatasHint, Instance: storage.CreateDatas{}},
 	{Hint: storage.UpdateDataHint, Instance: storage.UpdateData{}},
+	{Hint: storage.UpdateDatasHint, Instance: storage.UpdateDatas{}},
 	{Hint: storage.DeleteDataHint, Instance: storage.DeleteData{}},
 	{Hint: storage.RegisterModelHint, Instance: storage.RegisterModel{}},
 	{Hint: storage.CreateDatasItemHint, Instance: storage.CreateDatasItem{}},
+	{Hint: storage.UpdateDatasItemHint, Instance: storage.UpdateDatasItem{}},
 
 	{Hint: state.DataStateValueHint, Instance: state.DataStateValue{}},
 	{Hint: state.DesignStateValueHint, Instance: state.DesignStateValue{}},
@@ -34,6 +36,7 @@ var AddedSupportedHinters = []encoder.DecodeDetail{
 	{Hint: storage.CreateDataFactHint, Instance: storage.CreateDataFact{}},
 	{Hint: storage.CreateDatasFactHint, Instance: storage.CreateDatasFact{}},
 	{Hint: storage.UpdateDataFactHint, Instance: storage.UpdateDataFact{}},
+	{Hint: storage.UpdateDatasFactHint, Instance: storage.UpdateDatasFact{}},
 	{Hint: storage.DeleteDataFactHint, Instance: storage.DeleteDataFact{}},
 	{Hint: storage.RegisterModelFactHint, Instance: storage.RegisterModelFact{}},
 }

@@ -26,7 +26,7 @@ type BlockSession struct {
 	sync.RWMutex
 	block                 mitumbase.BlockMap
 	ops                   []mitumbase.Operation
-	opstree               fixedtree.Tree
+	opsTree               fixedtree.Tree
 	sts                   []mitumbase.State
 	st                    *currencydigest.Database
 	proposal              mitumbase.ProposalSignFact
@@ -66,7 +66,7 @@ func NewBlockSession(
 		st:          nst,
 		block:       blk,
 		ops:         ops,
-		opstree:     opstree,
+		opsTree:     opstree,
 		sts:         sts,
 		proposal:    proposal,
 		statesValue: &sync.Map{},
@@ -170,7 +170,7 @@ func (bs *BlockSession) Close() error {
 func (bs *BlockSession) prepareOperationsTree() error {
 	nodes := map[string]mitumbase.OperationFixedtreeNode{}
 
-	if err := bs.opstree.Traverse(func(_ uint64, no fixedtree.Node) (bool, error) {
+	if err := bs.opsTree.Traverse(func(_ uint64, no fixedtree.Node) (bool, error) {
 		nno := no.(mitumbase.OperationFixedtreeNode)
 		if nno.InState() {
 			nodes[nno.Key()] = nno
@@ -379,6 +379,12 @@ func (bs *BlockSession) writeModelsChunk(ctx context.Context, col string, models
 
 func (bs *BlockSession) close() error {
 	bs.block = nil
+	bs.ops = nil
+	bs.opsTree = fixedtree.EmptyTree()
+	bs.sts = nil
+	bs.proposal = nil
+	bs.opsTreeNodes = nil
+	bs.blockModels = nil
 	bs.operationModels = nil
 	bs.currencyModels = nil
 	bs.accountModels = nil

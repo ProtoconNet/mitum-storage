@@ -9,18 +9,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DeleteDataCommand struct {
+type UpdateDatasCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender   currencycmds.AddressFlag    `arg:"" name:"sender" help:"sender address" required:"true"`
 	Contract currencycmds.AddressFlag    `arg:"" name:"contract" help:"contract address" required:"true"`
 	Key      string                      `arg:"" name:"key" help:"key" required:"true"`
+	Value    string                      `arg:"" name:"value" help:"value" required:"true"`
 	Currency currencycmds.CurrencyIDFlag `arg:"" name:"currency" help:"currency id" required:"true"`
 	sender   base.Address
 	contract base.Address
 }
 
-func (cmd *DeleteDataCommand) Run(pctx context.Context) error { // nolint:dupl
+func (cmd *UpdateDatasCommand) Run(pctx context.Context) error { // nolint:dupl
 	if _, err := cmd.prepare(pctx); err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func (cmd *DeleteDataCommand) Run(pctx context.Context) error { // nolint:dupl
 	return nil
 }
 
-func (cmd *DeleteDataCommand) parseFlags() error {
+func (cmd *UpdateDatasCommand) parseFlags() error {
 	if err := cmd.OperationFlags.IsValid(nil); err != nil {
 		return err
 	}
@@ -62,15 +63,21 @@ func (cmd *DeleteDataCommand) parseFlags() error {
 		return errors.Errorf("invalid Key, %s", cmd.Key)
 	}
 
+	if len(cmd.Value) < 1 {
+		return errors.Errorf("invalid value, %s", cmd.Value)
+	}
+
 	return nil
 }
 
-func (cmd *DeleteDataCommand) createOperation() (base.Operation, error) { // nolint:dupl
-	e := util.StringError("failed to create delete-data operation")
+func (cmd *UpdateDatasCommand) createOperation() (base.Operation, error) { // nolint:dupl
+	e := util.StringError("failed to create update datas operation")
 
-	fact := storage.NewDeleteDataFact([]byte(cmd.Token), cmd.sender, cmd.contract, cmd.Key, cmd.Currency.CID)
+	item := storage.NewUpdateDatasItem(cmd.contract, cmd.Key, cmd.Value, cmd.Currency.CID)
 
-	op, err := storage.NewDeleteData(fact)
+	fact := storage.NewUpdateDatasFact([]byte(cmd.Token), cmd.sender, []storage.UpdateDatasItem{item})
+
+	op, err := storage.NewUpdateDatas(fact)
 	if err != nil {
 		return nil, e.Wrap(err)
 	}

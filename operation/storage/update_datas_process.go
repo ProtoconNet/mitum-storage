@@ -18,34 +18,34 @@ import (
 	"github.com/pkg/errors"
 )
 
-var createDatasItemProcessorPool = sync.Pool{
+var updateDatasItemProcessorPool = sync.Pool{
 	New: func() interface{} {
-		return new(CreateDatasItemProcessor)
+		return new(UpdateDatasItemProcessor)
 	},
 }
 
-var createDatasProcessorPool = sync.Pool{
+var updateDatasProcessorPool = sync.Pool{
 	New: func() interface{} {
-		return new(CreateDatasProcessor)
+		return new(UpdateDatasProcessor)
 	},
 }
 
-func (CreateDatas) Process(
+func (UpdateDatas) Process(
 	_ context.Context, _ base.GetStateFunc,
 ) ([]base.StateMergeValue, base.OperationProcessReasonError, error) {
 	return nil, nil, nil
 }
 
-type CreateDatasItemProcessor struct {
+type UpdateDatasItemProcessor struct {
 	h      util.Hash
 	sender base.Address
-	item   CreateDatasItem
+	item   UpdateDatasItem
 }
 
-func (ipp *CreateDatasItemProcessor) PreProcess(
+func (ipp *UpdateDatasItemProcessor) PreProcess(
 	_ context.Context, _ base.Operation, getStateFunc base.GetStateFunc,
 ) error {
-	e := util.StringError("preprocess CreateDatasItemProcessor")
+	e := util.StringError("preprocess UpdatDatasItemProcessor")
 	it := ipp.item
 
 	if err := it.IsValid(nil); err != nil {
@@ -73,9 +73,9 @@ func (ipp *CreateDatasItemProcessor) PreProcess(
 			common.ErrServiceNF.Errorf("storage service in contract account %v", it.Contract()))
 	}
 
-	if found, _ := currencystate.CheckNotExistsState(state.DataStateKey(it.Contract(), it.DataKey()), getStateFunc); found {
+	if err := currencystate.CheckExistsState(state.DataStateKey(it.Contract(), it.DataKey()), getStateFunc); err != nil {
 		return e.Wrap(
-			common.ErrStateE.Errorf(
+			common.ErrStateNF.Errorf(
 				"storage data for key %q in contract account %v",
 				it.DataKey(), it.Contract(),
 			))
@@ -84,7 +84,7 @@ func (ipp *CreateDatasItemProcessor) PreProcess(
 	return nil
 }
 
-func (ipp *CreateDatasItemProcessor) Process(
+func (ipp *UpdateDatasItemProcessor) Process(
 	_ context.Context, _ base.Operation, getStateFunc base.GetStateFunc,
 ) ([]base.StateMergeValue, error) {
 	it := ipp.item
@@ -105,31 +105,31 @@ func (ipp *CreateDatasItemProcessor) Process(
 	return sts, nil
 }
 
-func (ipp *CreateDatasItemProcessor) Close() {
+func (ipp *UpdateDatasItemProcessor) Close() {
 	ipp.h = nil
 	ipp.sender = nil
-	ipp.item = CreateDatasItem{}
+	ipp.item = UpdateDatasItem{}
 
-	createDatasItemProcessorPool.Put(ipp)
+	updateDatasItemProcessorPool.Put(ipp)
 }
 
-type CreateDatasProcessor struct {
+type UpdateDatasProcessor struct {
 	*base.BaseOperationProcessor
 }
 
-func NewCreateDatasProcessor() currencytypes.GetNewProcessor {
+func NewUpdateDatasProcessor() currencytypes.GetNewProcessor {
 	return func(
 		height base.Height,
 		getStateFunc base.GetStateFunc,
 		newPreProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc base.NewOperationProcessorProcessFunc,
 	) (base.OperationProcessor, error) {
-		e := util.StringError("failed to create new CreateDatasProcessor")
+		e := util.StringError("failed to create new UpdateDatasProcessor")
 
-		nopp := createDatasProcessorPool.Get()
-		opp, ok := nopp.(*CreateDatasProcessor)
+		nopp := updateDatasProcessorPool.Get()
+		opp, ok := nopp.(*UpdateDatasProcessor)
 		if !ok {
-			return nil, e.Errorf("expected %T, not %T", CreateDatasProcessor{}, nopp)
+			return nil, e.Errorf("expected %T, not %T", UpdateDatasProcessor{}, nopp)
 		}
 
 		b, err := base.NewBaseOperationProcessor(
@@ -144,15 +144,15 @@ func NewCreateDatasProcessor() currencytypes.GetNewProcessor {
 	}
 }
 
-func (opp *CreateDatasProcessor) PreProcess(
+func (opp *UpdateDatasProcessor) PreProcess(
 	ctx context.Context, op base.Operation, getStateFunc base.GetStateFunc,
 ) (context.Context, base.OperationProcessReasonError, error) {
-	fact, ok := op.Fact().(CreateDatasFact)
+	fact, ok := op.Fact().(UpdateDatasFact)
 	if !ok {
 		return ctx, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMTypeMismatch).
-				Errorf("expected %T, not %T", CreateDatasFact{}, op.Fact())), nil
+				Errorf("expected %T, not %T", UpdateDatasFact{}, op.Fact())), nil
 	}
 
 	if err := fact.IsValid(nil); err != nil {
@@ -181,11 +181,11 @@ func (opp *CreateDatasProcessor) PreProcess(
 	}
 
 	for _, it := range fact.Items() {
-		ip := createDatasItemProcessorPool.Get()
-		ipc, ok := ip.(*CreateDatasItemProcessor)
+		ip := updateDatasItemProcessorPool.Get()
+		ipc, ok := ip.(*UpdateDatasItemProcessor)
 		if !ok {
 			return nil, base.NewBaseOperationProcessReasonError(
-				common.ErrMTypeMismatch.Errorf("expected %T, not %T", CreateDatasItemProcessor{}, ip)), nil
+				common.ErrMTypeMismatch.Errorf("expected %T, not %T", UpdateDatasItemProcessor{}, ip)), nil
 		}
 
 		ipc.h = op.Hash()
@@ -204,18 +204,18 @@ func (opp *CreateDatasProcessor) PreProcess(
 	return ctx, nil, nil
 }
 
-func (opp *CreateDatasProcessor) Process( // nolint:dupl
+func (opp *UpdateDatasProcessor) Process( // nolint:dupl
 	ctx context.Context, op base.Operation, getStateFunc base.GetStateFunc) (
 	[]base.StateMergeValue, base.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process CreateDatas")
+	e := util.StringError("failed to process UpdateDatas")
 
-	fact, _ := op.Fact().(CreateDatasFact)
+	fact, _ := op.Fact().(UpdateDatasFact)
 
 	var sts []base.StateMergeValue // nolint:prealloc
 	for _, it := range fact.Items() {
-		ip := createDatasItemProcessorPool.Get()
-		ipc, _ := ip.(*CreateDatasItemProcessor)
+		ip := updateDatasItemProcessorPool.Get()
+		ipc, _ := ip.(*UpdateDatasItemProcessor)
 
 		ipc.h = op.Hash()
 		ipc.sender = fact.Sender()
@@ -223,7 +223,7 @@ func (opp *CreateDatasProcessor) Process( // nolint:dupl
 
 		st, err := ipc.Process(ctx, op, getStateFunc)
 		if err != nil {
-			return nil, base.NewBaseOperationProcessReasonError("failed to process CreateDatasItem; %w", err), nil
+			return nil, base.NewBaseOperationProcessReasonError("failed to process UpdateDatasItem; %w", err), nil
 		}
 
 		sts = append(sts, st...)
@@ -284,54 +284,8 @@ func (opp *CreateDatasProcessor) Process( // nolint:dupl
 	return sts, nil, nil
 }
 
-func (opp *CreateDatasProcessor) Close() error {
-	createDatasProcessorPool.Put(opp)
+func (opp *UpdateDatasProcessor) Close() error {
+	updateDatasProcessorPool.Put(opp)
 
 	return nil
-}
-
-func calculateDIDItemsFee(getStateFunc base.GetStateFunc, items []DataItem) (
-	map[currencytypes.CurrencyID]base.State, map[currencytypes.CurrencyID][2]common.Big, error) {
-	feeReceiveSts := map[currencytypes.CurrencyID]base.State{}
-	required := map[currencytypes.CurrencyID][2]common.Big{}
-
-	for _, item := range items {
-		rq := [2]common.Big{common.ZeroBig, common.ZeroBig}
-
-		if k, found := required[item.Currency()]; found {
-			rq = k
-		}
-
-		policy, err := currencystate.ExistsCurrencyPolicy(item.Currency(), getStateFunc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		switch k, err := policy.Feeer().Fee(common.ZeroBig); {
-		case err != nil:
-			return nil, nil, err
-		case !k.OverZero():
-			required[item.Currency()] = [2]common.Big{rq[0], rq[1]}
-		default:
-			required[item.Currency()] = [2]common.Big{rq[0].Add(k), rq[1].Add(k)}
-		}
-
-		if policy.Feeer().Receiver() == nil {
-			continue
-		}
-
-		if err := currencystate.CheckExistsState(statecurrency.AccountStateKey(policy.Feeer().Receiver()), getStateFunc); err != nil {
-			return nil, nil, err
-		} else if st, found, err := getStateFunc(statecurrency.BalanceStateKey(policy.Feeer().Receiver(), item.Currency())); err != nil {
-			return nil, nil, err
-		} else if !found {
-			return nil, nil, errors.Errorf("feeer receiver account not found, %s", policy.Feeer().Receiver())
-		} else {
-			feeReceiveSts[item.Currency()] = st
-		}
-
-	}
-
-	return feeReceiveSts, required, nil
-
 }

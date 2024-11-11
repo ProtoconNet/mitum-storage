@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	mitumbase "github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
@@ -11,29 +10,23 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DataItem interface {
-	util.Byter
-	util.IsValider
-	Currency() currencytypes.CurrencyID
-}
-
-var CreateDatasItems uint = 100
+var UpdateDatasItems uint = 100
 
 var (
-	CreateDatasFactHint = hint.MustNewHint("mitum-storage-create-datas-operation-fact-v0.0.1")
-	CreateDatasHint     = hint.MustNewHint("mitum-storage-create-datas-operation-v0.0.1")
+	UpdateDatasFactHint = hint.MustNewHint("mitum-storage-update-datas-operation-fact-v0.0.1")
+	UpdateDatasHint     = hint.MustNewHint("mitum-storage-update-datas-operation-v0.0.1")
 )
 
-type CreateDatasFact struct {
+type UpdateDatasFact struct {
 	mitumbase.BaseFact
 	sender mitumbase.Address
-	items  []CreateDatasItem
+	items  []UpdateDatasItem
 }
 
-func NewCreateDatasFact(
-	token []byte, sender mitumbase.Address, items []CreateDatasItem) CreateDatasFact {
-	bf := mitumbase.NewBaseFact(CreateDatasFactHint, token)
-	fact := CreateDatasFact{
+func NewUpdateDatasFact(
+	token []byte, sender mitumbase.Address, items []UpdateDatasItem) UpdateDatasFact {
+	bf := mitumbase.NewBaseFact(UpdateDatasFactHint, token)
+	fact := UpdateDatasFact{
 		BaseFact: bf,
 		sender:   sender,
 		items:    items,
@@ -43,11 +36,11 @@ func NewCreateDatasFact(
 	return fact
 }
 
-func (fact CreateDatasFact) IsValid(b []byte) error {
+func (fact UpdateDatasFact) IsValid(b []byte) error {
 	if n := len(fact.items); n < 1 {
 		return common.ErrFactInvalid.Wrap(common.ErrArrayLen.Wrap(errors.Errorf("empty items")))
-	} else if n > int(CreateDatasItems) {
-		return common.ErrFactInvalid.Wrap(common.ErrArrayLen.Wrap(errors.Errorf("items, %d over max, %d", n, CreateDatasItems)))
+	} else if n > int(UpdateDatasItems) {
+		return common.ErrFactInvalid.Wrap(common.ErrArrayLen.Wrap(errors.Errorf("items, %d over max, %d", n, UpdateDatasItems)))
 	}
 
 	if err := util.CheckIsValiders(nil, false,
@@ -82,15 +75,15 @@ func (fact CreateDatasFact) IsValid(b []byte) error {
 	return nil
 }
 
-func (fact CreateDatasFact) Hash() util.Hash {
+func (fact UpdateDatasFact) Hash() util.Hash {
 	return fact.BaseFact.Hash()
 }
 
-func (fact CreateDatasFact) GenerateHash() util.Hash {
+func (fact UpdateDatasFact) GenerateHash() util.Hash {
 	return valuehash.NewSHA256(fact.Bytes())
 }
 
-func (fact CreateDatasFact) Bytes() []byte {
+func (fact UpdateDatasFact) Bytes() []byte {
 	is := make([][]byte, len(fact.items))
 	for i := range fact.items {
 		is[i] = fact.items[i].Bytes()
@@ -103,19 +96,19 @@ func (fact CreateDatasFact) Bytes() []byte {
 	)
 }
 
-func (fact CreateDatasFact) Token() mitumbase.Token {
+func (fact UpdateDatasFact) Token() mitumbase.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact CreateDatasFact) Sender() mitumbase.Address {
+func (fact UpdateDatasFact) Sender() mitumbase.Address {
 	return fact.sender
 }
 
-func (fact CreateDatasFact) Items() []CreateDatasItem {
+func (fact UpdateDatasFact) Items() []UpdateDatasItem {
 	return fact.items
 }
 
-func (fact CreateDatasFact) Addresses() ([]mitumbase.Address, error) {
+func (fact UpdateDatasFact) Addresses() ([]mitumbase.Address, error) {
 	var as []mitumbase.Address
 
 	adrMap := make(map[string]struct{})
@@ -132,10 +125,10 @@ func (fact CreateDatasFact) Addresses() ([]mitumbase.Address, error) {
 	return as, nil
 }
 
-type CreateDatas struct {
+type UpdateDatas struct {
 	common.BaseOperation
 }
 
-func NewCreateDatas(fact CreateDatasFact) (CreateDatas, error) {
-	return CreateDatas{BaseOperation: common.NewBaseOperation(CreateDatasHint, fact)}, nil
+func NewUpdateDatas(fact UpdateDatasFact) (UpdateDatas, error) {
+	return UpdateDatas{BaseOperation: common.NewBaseOperation(UpdateDatasHint, fact)}, nil
 }

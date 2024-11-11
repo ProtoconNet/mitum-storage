@@ -66,8 +66,31 @@ var operationIndexModels = []mongo.IndexModel{
 	},
 }
 
+var storageDataServiceIndexModels = []mongo.IndexModel{
+	{
+		Keys: bson.D{
+			bson.E{Key: "contract", Value: 1},
+			bson.E{Key: "height", Value: -1}},
+		Options: options.Index().
+			SetName(indexPrefix + "storage_data_service_contract_height"),
+	},
+}
+
+var storageDataIndexModels = []mongo.IndexModel{
+	{
+		Keys: bson.D{
+			bson.E{Key: "contract", Value: 1},
+			bson.E{Key: "data_key", Value: 1},
+			bson.E{Key: "height", Value: -1}},
+		Options: options.Index().
+			SetName(indexPrefix + "storage_data_contract_datakey_height"),
+	},
+}
+
 var defaultIndexes = map[string] /* collection */ []mongo.IndexModel{
-	defaultColNameAccount:   accountIndexModels,
-	defaultColNameBalance:   balanceIndexModels,
-	defaultColNameOperation: operationIndexModels,
+	defaultColNameAccount:     accountIndexModels,
+	defaultColNameBalance:     balanceIndexModels,
+	defaultColNameOperation:   operationIndexModels,
+	defaultColNameStorage:     storageDataServiceIndexModels,
+	defaultColNameStorageData: storageDataIndexModels,
 }
