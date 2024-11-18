@@ -167,7 +167,8 @@ func DataCountByContract(
 	var ctx = context.Background()
 
 	var cursor *mongo.Cursor
-	c, err := st.MongoClient().Collection(defaultColNameStorageData).Find(ctx, filter, nil)
+	opts := options.Find().SetSort(bson.D{{"_id", 1}})
+	c, err := st.MongoClient().Collection(defaultColNameStorageData).Find(ctx, filter, opts)
 	if err != nil {
 		return 0, err
 	} else {
